@@ -79,10 +79,10 @@ Day02의 puzzle_game 폴더에 있는 파일을 수정할거야.
 -웹서버 생성, URL 도메인 구매, 설정...
 
 ##### 4-1. Git 설치
-- [Git] (https://git-scm.com/) 설치
+- [Git](https://git-scm.com/) 설치
 
 ##### 4-2. Github 가입
-- [GitHub] (https://github.com/) 가입
+- [GitHub](https://github.com/) 가입
     - 이메일 계정으로 가입되어 있음
 - 리포지토리 생성
     - Repository Name 필수
@@ -109,6 +109,7 @@ Day02의 puzzle_game 폴더에 있는 파일을 수정할거야.
 
     ![alt text](image-22.png)
 - GitHub Push 완료
+
 ![alt text](image-23.png)
 
 ##### 4-4. GitHub 푸시(업로드)
@@ -117,10 +118,21 @@ Day02의 puzzle_game 폴더에 있는 파일을 수정할거야.
     - 변경내용 아래메시지를 반드시 작성!
     - 커밋 X -> 드롭다운 버튼 클릭, 커밋 및 동기화 클릭
     * 커밋 및 푸시 : 공동 작업할 때, 다른 사람 소스와 충돌날 수도 있음
-- 
+
+- 다른 사람의 주소를 Clone 한 경우, 아래와 같은 메시지 발생
+
+![alt text](image-24.png)
+
+해결방법 : 제어판 > 사용자 계정 > 자격 증명 관리자 > Windows 자격 증명 > 일반 자격 증명에서 
+github.com 으로 되어있는 증명 모두 삭제하기
 
 
-- Vercel 가입, 등록, 배포
+##### 4-5. Vercel 가입
+- [Vercel](https://www.vercel.com) 회원가입
+- 메인화면 오른쪽 상단 add -> new project 선택
+
+![alt text](image-26.png)
+
 
 #### 5. 추가 내용
 
