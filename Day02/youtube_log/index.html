@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>유튜브 학습 기록 앱</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <p class="eyebrow">YouTube Study Log</p>
+      <h1 class="title">유튜브 학습 기록 앱</h1>
+      <p class="subtitle">학습한 유튜브 영상 URL을 저장하고, 다시 보고, 완료 상태까지 관리해보세요.</p>
+    </section>
+
+    <section class="panel input-panel" aria-labelledby="inputTitle">
+      <div class="panel-header">
+        <h2 id="inputTitle">URL 저장</h2>
+        <p>유튜브 주소를 입력하면 목록에 저장됩니다.</p>
+      </div>
+
+      <form id="urlForm" class="url-form">
+        <label class="field">
+          <span class="field-label">유튜브 URL</span>
+          <input
+            id="urlInput"
+            type="text"
+            inputmode="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            autocomplete="off"
+            spellcheck="false"
+            required
+          />
+        </label>
+
+        <button class="primary-button" type="submit">저장하기</button>
+      </form>
+
+      <p class="hint" id="helperText">youtube.com 또는 youtu.be 주소를 입력하세요.</p>
+      <p class="error-message" id="errorMessage" aria-live="polite"></p>
+    </section>
+
+    <section class="stats" aria-label="기록 현황">
+      <article class="stat-card">
+        <span class="stat-label">전체</span>
+        <strong class="stat-value" id="totalCount">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">학습 완료</span>
+        <strong class="stat-value" id="doneCount">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">미완료</span>
+        <strong class="stat-value" id="todoCount">0</strong>
+      </article>
+    </section>
+
+    <section class="panel list-panel" aria-labelledby="listTitle">
+      <div class="panel-header list-header">
+        <div>
+          <h2 id="listTitle">저장된 URL</h2>
+          <p>항목을 클릭하면 새 창에서 유튜브가 열립니다.</p>
+        </div>
+        <button class="ghost-button" id="clearAllButton" type="button">전체 삭제</button>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <p class="empty-title">아직 저장된 영상이 없습니다.</p>
+        <p class="empty-text">위 입력창에 학습한 유튜브 URL을 추가해보세요.</p>
+      </div>
+
+      <ul class="log-list" id="logList" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

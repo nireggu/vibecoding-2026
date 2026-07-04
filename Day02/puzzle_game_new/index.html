@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>단계형 퍼즐 게임</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <canvas id="fireworksCanvas" class="fireworks-layer" aria-hidden="true"></canvas>
+
+    <section class="screen screen-start show" id="startScreen" aria-hidden="false">
+      <div class="screen-card" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+        <p class="screen-kicker">Puzzle Game</p>
+        <h1 class="screen-title" id="startTitle">게임 시작</h1>
+        <p class="screen-text">
+          쉬움부터 시작해서 모든 단계를 1분 안에 클리어해 보세요.
+        </p>
+        <button class="screen-button" id="startButton" type="button">게임시작</button>
+      </div>
+    </section>
+
+    <section class="screen screen-result" id="resultScreen" aria-hidden="true">
+      <div class="screen-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <p class="screen-kicker" id="resultKicker">결과</p>
+        <h2 class="screen-title" id="resultTitle">축하합니다. 시간 안에 클리어 하셨습니다.</h2>
+        <p class="screen-text" id="resultText">모든 레벨을 완성했습니다.</p>
+        <button class="screen-button" id="resultButton" type="button">다시 시작</button>
+      </div>
+    </section>
+
+    <section class="game hidden" id="gameArea" aria-label="퍼즐 게임">
+      <header class="hero">
+        <p class="eyebrow">Vibe Coding Puzzle</p>
+        <h2 class="game-title">단계형 퍼즐 게임</h2>
+        <p class="game-subtitle">
+          같은 그림 2장을 찾아 단계별로 클리어하세요.
+        </p>
+      </header>
+
+      <section class="toolbar" aria-label="게임 정보">
+        <div class="stats">
+          <div class="stat">시도 횟수: <span id="attemptCount">0</span></div>
+          <div class="stat">단계: <span id="stageCount">쉬움 1/4</span></div>
+          <div class="stat time">남은 시간: <span class="time-value" id="timeLeftCount">01:00</span></div>
+          <div class="stat">점수: <span id="scoreCount">0</span></div>
+        </div>
+        <button class="restart-button" id="restartButton" type="button">처음 화면</button>
+      </section>
+
+      <section class="board" id="board" aria-label="퍼즐 보드"></section>
+
+      <p class="message" id="message">시작 버튼을 눌러 게임을 시작하세요.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

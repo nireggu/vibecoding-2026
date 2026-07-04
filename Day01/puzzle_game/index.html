@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>간단한 퍼즐 게임</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --board: #b9f2c6;
+      --board-border: #9be7af;
+      --accent: #2f6fed;
+      --accent-hover: #2459c9;
+      --shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 36%),
+        linear-gradient(180deg, #eff3fb 0%, #f6f8fc 100%);
+    }
+
+    .app {
+      position: relative;
+      width: min(100%, 620px);
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 28px 22px 20px;
+      overflow: hidden;
+    }
+
+    .fireworks_layer {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .content_layer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .title {
+      margin: 0;
+      text-align: center;
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 10px 0 22px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .attempts {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .restart {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      box-shadow: 0 8px 18px rgba(47, 111, 237, 0.18);
+    }
+
+    .restart:hover {
+      background: var(--accent-hover);
+    }
+
+    .restart:active {
+      transform: translateY(1px);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 7px;
+      margin: 8px 0 18px;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      border: 1px solid var(--board-border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #bdf5cc 0%, #abefbf 100%);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transition: transform 0.15s ease, filter 0.2s ease, background 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.01);
+    }
+
+    .card:disabled {
+      cursor: default;
+    }
+
+    .card .emoji {
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .card.flipped,
+    .card.matched {
+      background: linear-gradient(180deg, #d4f8dd 0%, #bdf5cc 100%);
+    }
+
+    .card.flipped .emoji,
+    .card.matched .emoji {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .card.matched {
+      box-shadow: inset 0 0 0 1px rgba(47, 111, 237, 0.08);
+    }
+
+    .message {
+      min-height: 28px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.4;
+      color: #1f2937;
+    }
+
+    .message.done {
+      color: #1f6b34;
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 22px 16px 18px;
+        border-radius: 18px;
+      }
+
+      .title {
+        font-size: 26px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .attempts {
+        font-size: 16px;
+      }
+
+      .restart {
+        padding: 10px 14px;
+      }
+
+      .board {
+        gap: 5px;
+      }
+
+      .card {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <canvas id="fireworksCanvas" class="fireworks_layer" aria-hidden="true"></canvas>
+    <div class="content_layer">
+      <h1 class="title">간단한 퍼즐 게임</h1>
+      <p class="subtitle">6x6 보드에서 같은 그림 2개를 찾아 모두 맞추면 클리어입니다.</p>
+
+      <section class="toolbar" aria-label="게임 정보">
+        <div class="attempts">시도 횟수: <span id="attemptCount">0</span></div>
+        <button class="restart" id="restartButton" type="button">다시 시작</button>
+      </section>
+
+      <section class="board" id="board" aria-label="퍼즐 보드"></section>
+
+      <div class="message" id="message">같은 그림을 찾아서 짝을 맞춰보세요.</div>
+    </div>
+  </main>
+
+  <script>
+    // 게임에서 사용할 과일 후보 목록입니다.
+    // 매번 18종을 랜덤으로 뽑아서 조금씩 다른 보드가 나오게 합니다.
+    const fruit_pool = [
+      "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭",
+      "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝",
+      "🥥", "🍅", "🥑", "🫒", "🍆", "🌶️", "🫑", "🥕"
+    ];
+
+    // 한 판에서 사용할 과일 개수입니다.
+    const fruit_count = 18;
+
+    // 화면에서 사용할 DOM 요소를 미리 찾아 둡니다.
+    const board_element = document.getElementById("board");
+    const attempt_count_element = document.getElementById("attemptCount");
+    const restart_button = document.getElementById("restartButton");
+    const message_element = document.getElementById("message");
+    const fireworks_canvas = document.getElementById("fireworksCanvas");
+    const fireworks_context = fireworks_canvas.getContext("2d");
+
+    // 현재 게임 상태를 저장하는 변수들입니다.
+    let first_card = null;
+    let second_card = null;
+    let board_locked = false;
+    let attempt_count = 0;
+    let matched_pairs = 0;
+    let pending_turn_timeout_id = null;
+    let pending_firework_frame_id = null;
+    let pending_firework_timers = [];
+    let firework_particles = [];
+
+    function shuffle_array(array) {
+      // 원본 배열은 건드리지 않기 위해 복사본을 만듭니다.
+      const shuffled_array = [...array];
+
+      // Fisher-Yates 방식으로 배열을 섞습니다.
+      // 이 방식은 sort + Math.random()보다 더 안정적으로 무작위 순서를 만듭니다.
+      for (let index = shuffled_array.length - 1; index > 0; index -= 1) {
+        const random_index = Math.floor(Math.random() * (index + 1));
+        [shuffled_array[index], shuffled_array[random_index]] = [shuffled_array[random_index], shuffled_array[index]];
+      }
+
+      return shuffled_array;
+    }
+
+    function pick_unique_fruits(count) {
+      // 후보 목록을 섞은 뒤, 앞에서부터 필요한 개수만큼 잘라서 사용합니다.
+      return shuffle_array(fruit_pool).slice(0, count);
+    }
+
+    function set_message(text, is_done = false) {
+      // 하단 안내 문구를 바꾸고, 클리어 상태면 강조 스타일을 줍니다.
+      message_element.textContent = text;
+      message_element.classList.toggle("done", is_done);
+    }
+
+    function reset_selected_cards() {
+      // 한 번의 시도 처리가 끝나면 선택한 카드 정보를 초기화합니다.
+      first_card = null;
+      second_card = null;
+      board_locked = false;
+    }
+
+    function update_attempt_count() {
+      // 화면에 보이는 시도 횟수를 숫자 상태와 맞춥니다.
+      attempt_count_element.textContent = attempt_count;
+    }
+
+    function mark_cards_as_matched(first_element, second_element) {
+      // 같은 그림인 카드 2장은 맞춘 상태로 고정합니다.
+      first_element.classList.add("matched");
+      second_element.classList.add("matched");
+      first_element.disabled = true;
+      second_element.disabled = true;
+      matched_pairs += 1;
+    }
+
+    function is_game_clear() {
+      // 모든 그림 쌍을 맞췄는지 확인합니다.
+      return matched_pairs === fruit_count;
+    }
+
+    function show_clear_message() {
+      // 게임을 모두 맞췄을 때 보여줄 문구입니다.
+      set_message("축하합니다. 게임 클리어했습니다", true);
+      start_fireworks();
+    }
+
+    function reveal_card(card_element) {
+      // 카드 앞면이 보이도록 뒤집는 역할입니다.
+      card_element.classList.add("flipped");
+    }
+
+    function hide_card(card_element) {
+      // 맞지 않는 카드 두 장을 다시 뒤집는 역할입니다.
+      if (!card_element) {
+        // 재시작 직후처럼 카드가 이미 사라진 경우에는 아무 작업도 하지 않습니다.
+        return;
+      }
+
+      card_element.classList.remove("flipped");
+    }
+
+    function clear_pending_turn_timeout() {
+      // 이전 턴에서 예약된 뒤집기 작업이 남아 있으면 취소합니다.
+      if (pending_turn_timeout_id !== null) {
+        clearTimeout(pending_turn_timeout_id);
+        pending_turn_timeout_id = null;
+      }
+    }
+
+    function resize_fireworks_canvas() {
+      // 캔버스는 실제 픽셀 크기에 맞춰야 선명하게 보입니다.
+      const canvas_rect = fireworks_canvas.getBoundingClientRect();
+      const device_scale = window.devicePixelRatio || 1;
+
+      fireworks_canvas.width = canvas_rect.width * device_scale;
+      fireworks_canvas.height = canvas_rect.height * device_scale;
+      fireworks_context.setTransform(device_scale, 0, 0, device_scale, 0, 0);
+    }
+
+    function clear_fireworks_canvas() {
+      const canvas_rect = fireworks_canvas.getBoundingClientRect();
+      fireworks_context.clearRect(0, 0, canvas_rect.width, canvas_rect.height);
+    }
+
+    function create_firework_burst() {
+      // 한 번의 폭죽은 여러 개의 작은 점으로 퍼지게 만듭니다.
+      const canvas_rect = fireworks_canvas.getBoundingClientRect();
+      const center_x = Math.random() * canvas_rect.width * 0.8 + canvas_rect.width * 0.1;
+      const center_y = Math.random() * canvas_rect.height * 0.4 + canvas_rect.height * 0.1;
+      const colors = ["#ff4d6d", "#ffd166", "#7cdb8a", "#5aa9ff", "#b56bff"];
+      const spark_count = 14;
+
+      for (let index = 0; index < spark_count; index += 1) {
+        const angle = (Math.PI * 2 * index) / spark_count;
+        const speed = 2.5 + Math.random() * 4;
+
+        firework_particles.push({
+          x: center_x,
+          y: center_y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          gravity: 0.05 + Math.random() * 0.03,
+          life: 70 + Math.random() * 20,
+          max_life: 70 + Math.random() * 20,
+          size: 2 + Math.random() * 2.5,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+    }
+
+    function draw_fireworks_frame() {
+      clear_fireworks_canvas();
+
+      firework_particles = firework_particles.filter((particle) => particle.life > 0);
+
+      firework_particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.vy += particle.gravity;
+        particle.life -= 1;
+
+        fireworks_context.beginPath();
+        fireworks_context.globalAlpha = Math.max(particle.life / particle.max_life, 0);
+        fireworks_context.fillStyle = particle.color;
+        fireworks_context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        fireworks_context.fill();
+      });
+
+      fireworks_context.globalAlpha = 1;
+
+      if (firework_particles.length === 0) {
+        pending_firework_frame_id = null;
+        clear_fireworks_canvas();
+        return;
+      }
+
+      pending_firework_frame_id = requestAnimationFrame(draw_fireworks_frame);
+    }
+
+    function stop_fireworks() {
+      // 재시작할 때 남아 있는 폭죽 효과를 모두 정리합니다.
+      firework_particles = [];
+
+      pending_firework_timers.forEach((timer_id) => {
+        clearTimeout(timer_id);
+      });
+      pending_firework_timers = [];
+
+      if (pending_firework_frame_id !== null) {
+        cancelAnimationFrame(pending_firework_frame_id);
+        pending_firework_frame_id = null;
+      }
+
+      clear_fireworks_canvas();
+    }
+
+    function start_fireworks() {
+      // 클리어 시 폭죽이 여러 번 터지도록 예약합니다.
+      stop_fireworks();
+      resize_fireworks_canvas();
+
+      for (let index = 0; index < 8; index += 1) {
+        const timer_id = setTimeout(create_firework_burst, index * 160);
+        pending_firework_timers.push(timer_id);
+      }
+
+      pending_firework_frame_id = requestAnimationFrame(draw_fireworks_frame);
+    }
+
+    function compare_cards() {
+      // 두 카드의 data-value가 같으면 같은 그림입니다.
+      return first_card.dataset.value === second_card.dataset.value;
+    }
+
+    function handle_matched_pair() {
+      // 같은 그림이면 카드들을 맞춘 상태로 표시하고, 턴을 초기화합니다.
+      mark_cards_as_matched(first_card, second_card);
+      set_message("잘 찾았어요! 같은 그림입니다.");
+      reset_selected_cards();
+
+      if (is_game_clear()) {
+        show_clear_message();
+      }
+    }
+
+    function handle_mismatched_pair() {
+      // 다른 그림이면 잠깐 보여준 뒤 다시 뒤집습니다.
+      set_message("다른 그림입니다. 잠깐 뒤에 다시 뒤집어요.");
+
+      clear_pending_turn_timeout();
+
+      pending_turn_timeout_id = setTimeout(() => {
+        hide_card(first_card);
+        hide_card(second_card);
+        set_message("다시 같은 그림을 찾아보세요.");
+        reset_selected_cards();
+        pending_turn_timeout_id = null;
+      }, 700);
+    }
+
+    function handle_second_selection(card_element) {
+      // 두 번째 카드를 선택했을 때 매칭 비교를 시작합니다.
+      second_card = card_element;
+      attempt_count += 1;
+      update_attempt_count();
+      board_locked = true;
+
+      if (compare_cards()) {
+        handle_matched_pair();
+        return;
+      }
+
+      handle_mismatched_pair();
+    }
+
+    function handle_card_click(card_element) {
+      // 이미 맞춘 카드, 같은 카드 재클릭, 비교 중인 상태는 무시합니다.
+      if (board_locked || card_element === first_card || card_element.classList.contains("matched")) {
+        return;
+      }
+
+      reveal_card(card_element);
+
+      if (!first_card) {
+        // 첫 번째 카드가 아직 없다면 지금 카드를 저장합니다.
+        first_card = card_element;
+        return;
+      }
+
+      // 두 번째 카드까지 선택되면 비교 로직으로 넘어갑니다.
+      handle_second_selection(card_element);
+    }
+
+    function create_card_element(emoji) {
+      // 카드 1장을 버튼 요소로 만듭니다.
+      const card_element = document.createElement("button");
+      card_element.type = "button";
+      card_element.className = "card";
+      card_element.dataset.value = emoji;
+      card_element.setAttribute("aria-label", "카드");
+
+      // 카드 안에 실제로 보여줄 그림을 넣습니다.
+      const emoji_element = document.createElement("span");
+      emoji_element.className = "emoji";
+      emoji_element.textContent = emoji;
+
+      card_element.appendChild(emoji_element);
+      card_element.addEventListener("click", () => handle_card_click(card_element));
+
+      return card_element;
+    }
+
+    function render_board() {
+      // 매 게임마다 18종의 과일을 골라서, 각 과일을 2장씩 넣습니다.
+      const selected_fruits = pick_unique_fruits(fruit_count);
+      const shuffled_emoji_list = shuffle_array([...selected_fruits, ...selected_fruits]);
+      board_element.innerHTML = "";
+
+      // 섞인 순서대로 카드 요소를 화면에 배치합니다.
+      shuffled_emoji_list.forEach((emoji) => {
+        const card_element = create_card_element(emoji);
+        board_element.appendChild(card_element);
+      });
+    }
+
+    function reset_game() {
+      // 게임 상태를 처음으로 되돌립니다.
+      clear_pending_turn_timeout();
+      stop_fireworks();
+      first_card = null;
+      second_card = null;
+      board_locked = false;
+      attempt_count = 0;
+      matched_pairs = 0;
+      update_attempt_count();
+      set_message("같은 그림을 찾아서 짝을 맞춰보세요.");
+      render_board();
+    }
+
+    restart_button.addEventListener("click", reset_game);
+    window.addEventListener("resize", resize_fireworks_canvas);
+
+    // 페이지가 열리면 바로 게임을 시작합니다.
+    resize_fireworks_canvas();
+    reset_game();
+  </script>
+</body>
+</html>
