@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>업무 이력 관리시스템</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="brand-kicker">MOF Work Log</p>
+        <h1>업무 이력<br />관리 시스템</h1>
+      </div>
+
+      <nav class="menu" aria-label="주요 메뉴">
+        <button class="menu-button active" data-view="main" type="button">대시보드</button>
+        <button class="menu-button" data-view="schedule" type="button">일정관리</button>
+      </nav>
+
+      <section class="sidebar-note">
+        <h2>관리 포인트</h2>
+        <ul>
+          <li>요청일과 마감기한을 함께 확인합니다.</li>
+          <li>중요도, 상태, 책임자별 현황을 바로 봅니다.</li>
+          <li>캘린더에서 일정을 눌러 상세 업무로 이동합니다.</li>
+        </ul>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <header class="workspace-header">
+        <div>
+          <p class="workspace-kicker" id="workspaceKicker">WORK HISTORY DASHBOARD</p>
+          <h2 id="workspaceTitle">대시보드</h2>
+        </div>
+        <div class="header-actions">
+          <button class="ghost-button" id="seedButton" type="button">샘플 데이터 복구</button>
+        </div>
+      </header>
+
+      <section class="view active" id="mainView" aria-label="메인 화면">
+        <section class="level-panel" aria-label="1Level 2Level 필터">
+          <div class="level-one-row" id="levelOneButtons" aria-label="1Level">
+            <button class="level-button active" type="button" data-level="status">진행상태</button>
+            <button class="level-button" type="button" data-level="importance">중요도</button>
+            <button class="level-button" type="button" data-level="manager">책임자</button>
+          </div>
+          <div class="level-two-box hidden" id="levelTwoBox" aria-label="2Level">
+            <div class="level-two-header">
+              <p id="levelTwoTitle">2Level</p>
+              <button class="ghost-button level-reset" id="levelResetButton" type="button">초기화</button>
+            </div>
+            <div class="level-two-row" id="levelTwoButtons"></div>
+          </div>
+        </section>
+
+        <section class="dashboard" id="dashboardArea" aria-label="업무 현황 대시보드"></section>
+
+        <section class="main-grid">
+          <article class="panel list-panel">
+            <div class="panel-head">
+              <div class="panel-title-group">
+                <h3>업무 목록</h3>
+                <button class="ghost-button" id="goScheduleFromMainButton" type="button">일정관리로 이동</button>
+                <p>최근 업무를 표 형태로 확인할 수 있습니다.</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-button icon-only-button" id="mainRefreshButton" type="button" aria-label="리프레쉬">
+                  <img src="assets/refresh.png" alt="" aria-hidden="true" />
+                  <span class="sr-only">리프레쉬</span>
+                </button>
+                <button class="primary-button" id="quickAddButton" type="button">업무 등록</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="task-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <span class="table-head-title">제목</span>
+                      <span class="table-head-subtitle">요청자·책임자</span>
+                    </th>
+                    <th>상태</th>
+                    <th>중요도</th>
+                    <th>요청일</th>
+                    <th>마감일</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTaskTableBody"></tbody>
+              </table>
+            </div>
+            <p class="empty-state" id="mainEmptyState">등록된 업무가 없습니다. 업무를 추가해보세요.</p>
+          </article>
+
+          <article class="panel calendar-panel">
+            <div class="panel-head">
+              <div>
+                <h3 class="calendar-title">업무 일정 캘린더</h3>
+                <p>마감기한이 있는 업무를 월간 캘린더로 보여줍니다.</p>
+              </div>
+              <div class="calendar-nav">
+                <button class="icon-button" id="prevMonthButton" type="button">이전</button>
+                <strong id="calendarLabel">2026-07</strong>
+                <button class="icon-button" id="nextMonthButton" type="button">다음</button>
+              </div>
+            </div>
+
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span>토</span>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid" aria-label="업무 캘린더"></div>
+          </article>
+        </section>
+      </section>
+
+      <section class="view" id="scheduleView" aria-label="일정관리 화면">
+        <section class="schedule-layout">
+          <article class="panel schedule-list-panel">
+            <div class="panel-head">
+              <div>
+                <h3>일정관리 게시판</h3>
+                <p>업무 목록을 클릭하면 상세 화면이 열립니다.</p>
+              </div>
+            </div>
+
+            <div class="filters" aria-label="업무 필터">
+              <label>
+                <span>상태</span>
+                <select id="statusFilter">
+                  <option value="all">전체</option>
+                  <option value="pending">대기</option>
+                  <option value="progress">진행 중</option>
+                  <option value="hold">보류</option>
+                  <option value="done">완료</option>
+                </select>
+              </label>
+              <label>
+                <span>중요도</span>
+                <select id="importanceFilter">
+                  <option value="all">전체</option>
+                  <option value="high">긴급</option>
+                  <option value="medium">보통</option>
+                  <option value="low">낮음</option>
+                </select>
+              </label>
+              <label>
+                <span>책임자</span>
+                <input id="managerFilter" type="text" placeholder="이름 검색" />
+              </label>
+            </div>
+
+            <div class="table-wrap schedule-table-wrap">
+              <table class="task-table clickable">
+                <thead>
+                  <tr>
+                    <th>제목</th>
+                    <th>요청자</th>
+                    <th>책임자</th>
+                    <th>작업상태</th>
+                    <th>마감기한</th>
+                  </tr>
+                </thead>
+                <tbody id="taskTableBody"></tbody>
+              </table>
+            </div>
+
+            <p class="empty-state" id="scheduleEmptyState">조건에 맞는 업무가 없습니다.</p>
+          </article>
+
+          <article class="panel detail-panel" id="detailPanel">
+            <div class="panel-head">
+              <div>
+                <h3 id="detailTitle">상세 화면</h3>
+                <p id="detailSubtitle">목록에서 게시글을 선택하세요.</p>
+              </div>
+            </div>
+
+            <div id="detailView" class="detail-view empty-detail">
+              <p>업무를 선택하면 상세 내용이 표시됩니다.</p>
+            </div>
+
+            <form id="taskForm" class="task-form hidden">
+              <input type="hidden" id="taskId" />
+
+              <label>
+                <span>제목</span>
+                <input id="titleInput" type="text" required maxlength="60" placeholder="업무 제목을 입력하세요" />
+              </label>
+
+              <label>
+                <span>내용</span>
+                <textarea id="contentInput" rows="6" required placeholder="업무 내용을 상세히 적어주세요"></textarea>
+              </label>
+
+              <div class="form-grid">
+                <label>
+                  <span>요청일</span>
+                  <input id="requestDateInput" type="date" required />
+                </label>
+                <label>
+                  <span>마감기한</span>
+                  <input id="dueDateInput" type="date" required />
+                </label>
+                <label>
+                  <span>중요도</span>
+                  <select id="importanceInput" required>
+                    <option value="high">긴급</option>
+                    <option value="medium" selected>보통</option>
+                    <option value="low">낮음</option>
+                  </select>
+                </label>
+                <label>
+                  <span>작업상태</span>
+                  <select id="statusInput" required>
+                    <option value="pending">대기</option>
+                    <option value="progress">진행 중</option>
+                    <option value="hold">보류</option>
+                    <option value="done">완료</option>
+                  </select>
+                </label>
+                <label>
+                  <span>요청자</span>
+                  <input id="requesterInput" type="text" required maxlength="20" placeholder="요청자 이름" />
+                </label>
+                <label>
+                  <span>책임자</span>
+                  <input id="managerInput" type="text" required maxlength="20" placeholder="책임자 이름" />
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button class="ghost-button" id="cancelEditButton" type="button">취소</button>
+                <button class="primary-button" type="submit" id="saveTaskButton">저장</button>
+              </div>
+            </form>
+
+            <div class="detail-actions hidden" id="detailActions">
+              <button class="ghost-button" id="backToListButton" type="button">목록</button>
+              <button class="primary-button" id="editTaskButton" type="button">수정</button>
+              <button class="danger-button" id="deleteTaskButton" type="button">삭제</button>
+            </div>
+          </article>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
