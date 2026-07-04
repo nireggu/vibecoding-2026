@@ -210,7 +210,7 @@ function renderList() {
 
   sortedItems.forEach((item) => {
     const li = document.createElement("li");
-    li.className = `log-item${item.done ? " done" : ""}`;
+    li.className = `log-item${item.done ? " done" : " active"}`;
     li.dataset.id = item.id;
 
     const topRow = document.createElement("div");
@@ -254,20 +254,11 @@ function renderList() {
     titleBlock.appendChild(badge);
     titleBlock.appendChild(urlText);
 
-    meta.appendChild(thumbnail);
-    meta.appendChild(titleBlock);
-    topRow.appendChild(meta);
-
     const actions = document.createElement("div");
     actions.className = "log-actions";
 
-    const openButton = document.createElement("button");
-    openButton.type = "button";
-    openButton.className = "icon-button";
-    openButton.textContent = "새 창 열기";
-    openButton.addEventListener("click", () => {
-      window.open(item.url, "_blank", "noopener,noreferrer");
-    });
+    const leftActions = document.createElement("div");
+    leftActions.className = "log-actions-left";
 
     const toggleWrap = document.createElement("label");
     toggleWrap.className = "toggle-wrap";
@@ -297,12 +288,17 @@ function renderList() {
       render();
     });
 
-    actions.appendChild(openButton);
-    actions.appendChild(toggleWrap);
+    leftActions.appendChild(toggleWrap);
+    actions.appendChild(leftActions);
     actions.appendChild(deleteButton);
 
+    titleBlock.appendChild(actions);
+
+    meta.appendChild(thumbnail);
+    meta.appendChild(titleBlock);
+    topRow.appendChild(meta);
+
     li.appendChild(topRow);
-    li.appendChild(actions);
 
     logList.appendChild(li);
   });
@@ -348,7 +344,7 @@ function addItemFromUrl(rawUrl) {
   fetchYoutubeMeta(normalized.url)
     .then((meta) => {
       updateItemMeta(currentItemId, meta);
-      helperText.textContent = "저장되었습니다. 목록에서 새 창 열기, 완료 체크, 삭제가 가능합니다.";
+      helperText.textContent = "저장되었습니다. 목록에서 완료 체크와 삭제가 가능합니다.";
       render();
     })
     .catch(() => {
